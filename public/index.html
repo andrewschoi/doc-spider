@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Doc Spider</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Doc Spider</h1>
+  
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="zipfile" id="zipfileInput" accept=".zip">
+    <button type="submit">Upload</button>
+  </form>
+
+  <p>Upload a zip of your source code and write GPT-generated documentation on nested functions</p>
+  <div>
+    <h2>
+      Approach:
+    </h2>
+    <p>Accept a zip file via a Express and Multer and sandbox the unzipped application via Docker</p>
+    <p>Perform simple DFS on folder hierarchy and target files with .js extension</p>
+    <p>Access function headers, arguments, and body via AST</p>
+    <p>Generate function documentation via requests to OpenAI</p>
+    <h2>Limitations</h2>
+    <p>Code support for other languages, i.e. C++ (AST properties are different)</p>
+    <h2>Areas for improvement</h2>
+    <p>It is usually the case that functions use other functions within their definitions, efficiently gathering context about other functions before writing documentation on a dependent function can improve documentation quality</p>
+
+    
+  </div>
+
+  <div id="responseContainer"></div>
+
+  <script src="frontend.js"></script>
+  
+</body>
+</html>
