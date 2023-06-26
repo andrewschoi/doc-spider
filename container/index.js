@@ -6,6 +6,8 @@ require("dotenv").config();
 
 const isJavaScriptFile = (fileName) => path.extname(fileName) === ".js";
 
+const isNodeModuleDir = (filePath) => filePath.includes("node_modules");
+
 const extractFunctionData = (filename) => {
   const code = fs.readFileSync(filename, "utf8");
   try {
@@ -46,7 +48,7 @@ const readFilesRecursively = (directoryPath) => {
     if (stat.isFile() && isJavaScriptFile(fileName)) {
       extractFunctionData(filePath);
     }
-    if (stat.isDirectory()) {
+    if (stat.isDirectory() && !isNodeModuleDir(filePath)) {
       readFilesRecursively(filePath);
     }
   });
