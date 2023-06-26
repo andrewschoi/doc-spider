@@ -1,6 +1,6 @@
 # DocSpider
 
-AutoDoc is a tool for automatically generating documentation for JavaScript source code.
+DocSpider is a tool for automatically generating documentation for JavaScript source code.
 
 ## Features
 
