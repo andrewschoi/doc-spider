@@ -8,26 +8,31 @@ const isJavaScriptFile = (fileName) => path.extname(fileName) === ".js";
 
 const extractFunctionData = (filename) => {
   const code = fs.readFileSync(filename, "utf8");
-  esprima.parseScript(code, { range: true }, function (node) {
-    if (node.type === "FunctionDeclaration") {
-      const newFunc = new Func(
-        node.id.name,
-        node.params.map((param) => param.name),
-        code.substring(node.body.range[0], node.body.range[1])
-      );
-      functions.push(newFunc);
-    } else if (
-      node.type === "VariableDeclarator" &&
-      node.init.type === "ArrowFunctionExpression"
-    ) {
-      const newFunc = new Func(
-        node.id.name,
-        node.init.params.map((param) => param.name),
-        code.substring(node.init.body.range[0], node.init.body.range[1])
-      );
-      functions.push(newFunc);
-    }
-  });
+  try {
+    esprima.parseScript(code, { range: true }, function (node) {
+      if (node.type === "FunctionDeclaration") {
+        const newFunc = new Func(
+          node.id.name,
+          node.params.map((param) => param.name),
+          code.substring(node.body.range[0], node.body.range[1])
+        );
+        functions.push(newFunc);
+      } else if (
+        node.type === "VariableDeclarator" &&
+        node.init &&
+        node.init.type === "ArrowFunctionExpression"
+      ) {
+        const newFunc = new Func(
+          node.id.name,
+          node.init.params.map((param) => param.name),
+          code.substring(node.init.body.range[0], node.init.body.range[1])
+        );
+        functions.push(newFunc);
+      }
+    });
+  } catch (e) {
+    console.log(`Something went wrong parsing file ${filename}`);
+  }
 };
 
 const readFilesRecursively = (directoryPath) => {
@@ -35,7 +40,9 @@ const readFilesRecursively = (directoryPath) => {
   fileNames.forEach((fileName) => {
     const filePath = path.join(directoryPath, fileName);
     const stat = fs.statSync(filePath);
-
+    if (ignorePaths.includes(filePath)) return;
+    if (visited.has(filePath)) return;
+    visited.add(filePath);
     if (stat.isFile() && isJavaScriptFile(fileName)) {
       extractFunctionData(filePath);
     }
@@ -101,13 +108,18 @@ const generateDocs = async (func) => {
   return response.data.choices[0].message.content;
 };
 
-const rootDirectory = "src";
+const rootDirectory = __dirname;
+const ignorePaths = [
+  path.join(__dirname, "index.js"),
+  path.join(__dirname, "node_modules"),
+];
 const functions = [];
+let visited = new Set();
 const openai = axios.create({
   baseURL: "https://api.openai.com/v1",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.OPEN_API_API_KEY}`,
+    Authorization: `Bearer ${process.env.OPEN_AI_API_KEY || "<api-key>"}`,
   },
 });
 
